@@ -1,0 +1,26 @@
+#Building the worker artifact
+#============================#
+FROM golang:1.16 AS build
+ADD . /src
+WORKDIR /src
+
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+COPY ./starter/main.go ./
+
+COPY . .
+
+RUN go build -v -o main
+
+
+# Deploying the artifact
+#=======================#
+FROM alpine:3.4
+WORKDIR /usr/local/bin
+
+COPY --from=build /src/main ./main
+RUN chmod +x ./main
+
+CMD ["./main" ]
